@@ -12,6 +12,7 @@ class Point:
     def __str__(self):
         return "({}, {})".format(self.x, self.y)
 
+
 class Vector:
     def __init__(self, x, y):
         self.x = x
@@ -31,9 +32,11 @@ class Vector:
 
     def __str__(self):
         return "({}, {})".format(self.x, self.y)
-    
+
+
 def t_hit(line, particle, direction):
-    """line is two points, particle is a point, direction is a vector."""
+    """Calculates the time it takes for a particle to hit a line, given a direction.
+       line is two points, particle is a point, direction is a vector."""
     p1, p2 = line
     p2p1 = p2 - p1
     n = Vector(p2p1.y, -p2p1.x)
@@ -45,9 +48,25 @@ def t_hit(line, particle, direction):
 
 
 def p_hit(particle, t_hit, direction):
+    """Calculates where a particle will be in some time, given a direction.
+       Particle is a point, t_hit from the t_hit function, direction is a vector."""
     tmp = Point(direction.x * t_hit, direction.y * t_hit)
     return particle + tmp
 
+
+def reflect(direction, line):
+    """Reflects a direction vector about a line"""
+    p1, p2 = line
+    p2p1 = p2 - p1
+    n = Vector(p2p1.y, -p2p1.x)
+
+    cn = direction ** n
+    cn *= 2
+    cn /= n ** n
+    cn = Point(cn * n.x, cn * n.y)
+
+    return direction - cn
 # t = t_hit((Point(3,8), Point(7,6)), Point(4,2), Vector(1, 3))
 # p = p_hit(Point(4,2), t, Vector(1, 3))
 # print(t, p)
+# print(reflect(Vector(1,3), (Point(3,8), Point(7,6))))
