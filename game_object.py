@@ -10,6 +10,7 @@ class GameObject(object):
         self.y = y
         self.vertices = vertices
         self.color = color
+        self.alive = True
 
     def __iter__(self):
         yield self
@@ -31,6 +32,10 @@ class GameObject(object):
         """Draw self."""
         draw_poly(self.x, self.y, self.vertices, self.color)
 
+
+    def destroy(self):
+        """Sets cleanup flag"""
+        self.alive = False
 
 class Player(GameObject):
     """The player object"""
@@ -90,6 +95,7 @@ class Bullet(GameObject):
         self.direction = direction
         self.hp_damage = hp_damage
         self.shield_damage = shield_damage
+        self.bounces = 2
 
     def draw(self):
         """Draw self."""
@@ -117,13 +123,18 @@ class Bullet(GameObject):
             line = (previous_line_point, new_point)
             time_to_hit = t_hit(line, self_point, self_direction)
             
-            if time_to_hit < delta_time and time_to_hit > 0:
+            if time_to_hit <= delta_time and time_to_hit >= 0:
                 # print("p1: {}; p2: {}".format(previous_line_point, new_point))
                 where_hit = p_hit(self_point, time_to_hit, self_direction)
                 # print(where_hit)
                 if new_point.x <= where_hit.x <= previous_line_point.x or  previous_line_point.x <= where_hit.x <= new_point.x:
+                    
                     new_direction = reflect(self_direction, line)
                     self.direction = (new_direction.x, new_direction.y)
+                    if self.bounces > 0:
+                        self.bounces -= 1
+                    else:
+                        self.destroy()
                     return
 
             previous_line_point = new_point

@@ -1,3 +1,5 @@
+from game_object import *
+
 class GameObjectContainer:
     def __init__(self, player, enemies=[], bullets=[], walls=[]):
         self.enemies = enemies
@@ -7,3 +9,10 @@ class GameObjectContainer:
 
     def get_all_objects(self):
         return self.enemies + self.bullets + self.walls + [self.player]
+    def delete_object(self, obj):
+        if isinstance(obj, Bullet):
+            self.bullets.remove(obj)
+        elif isinstance(obj, Wall):
+            self.walls.remove(obj)
+        elif isinstance(obj, Enemy):
+            self.enemies.remove(obj)
