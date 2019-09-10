@@ -82,6 +82,11 @@ class ShooterGame:
         """Updates all the objects."""
         for obj in self.object_container.get_all_objects():
             obj.update(delta_time)
+        
+        for bullet in self.object_container.bullets:
+            for wall in self.object_container.walls:
+                bullet.collision_check(wall, delta_time)
+        
 
     def run(self):
         """Runs the game forever-ish."""

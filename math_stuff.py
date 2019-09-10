@@ -37,6 +37,7 @@ class Vector:
 def t_hit(line, particle, direction):
     """Calculates the time it takes for a particle to hit a line, given a direction.
        line is two points, particle is a point, direction is a vector."""
+    # The formula is (normal . (p1 - particle))/(normal . direction)
     p1, p2 = line
     p2p1 = p2 - p1
     n = Vector(p2p1.y, -p2p1.x)
@@ -44,18 +45,23 @@ def t_hit(line, particle, direction):
     p1particle = Vector(p1particle.x, p1particle.y)
     above = n ** p1particle
     below = n ** direction
+    if below == 0: return -1
+    # print("p1: {}; p2: {}; particle: {}; direction: {}; normal: {}; above: {}; below: {}".format(p1, p2, particle, direction, n, above, below))
+
     return above/below
 
 
 def p_hit(particle, t_hit, direction):
     """Calculates where a particle will be in some time, given a direction.
        Particle is a point, t_hit from the t_hit function, direction is a vector."""
+    # Formula is particle + t_hit * direction
     tmp = Point(direction.x * t_hit, direction.y * t_hit)
     return particle + tmp
 
 
 def reflect(direction, line):
     """Reflects a direction vector about a line"""
+    # The formula is: direction - 2(direction . normal)/(normal . normal) * normal
     p1, p2 = line
     p2p1 = p2 - p1
     n = Vector(p2p1.y, -p2p1.x)

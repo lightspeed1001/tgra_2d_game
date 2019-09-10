@@ -1,5 +1,6 @@
 from OpenGLWrapper import *
 from constants import *
+from math_stuff import *
 
 class GameObject(object):
     """This is the base object for all the object in the game, such as enemies, player, etc."""
@@ -22,7 +23,7 @@ class GameObject(object):
         """Does any update logic. This basic function does nothing. Please override. """
         pass
 
-    def collision_check(self, other):
+    def collision_check(self, other, delta_time):
         """Checks if the object collides with other."""
         pass
 
@@ -97,6 +98,35 @@ class Bullet(GameObject):
     def update(self, delta_time):
         self.x += self.direction[0] * delta_time
         self.y += self.direction[1] * delta_time
+
+    def collision_check(self, other, delta_time):
+        """Checks if the object collides with other."""
+        # This is just a particle, so we can use the math_stuff thingy
+        self_point = Point(self.x, self.y)
+        self_direction = Vector(self.direction[0], self.direction[1])
+
+        previous_line_point = other.vertices[0]
+        previous_line_point = Point(other.x - previous_line_point[0], other.y + previous_line_point[1])
+        
+        # print(self_point)
+        # print(previous_line_point)
+        # exit()
+        for line_point in other.vertices[1:]:
+            new_point = Point(other.x - line_point[0], other.y + line_point[1])
+            
+            line = (previous_line_point, new_point)
+            time_to_hit = t_hit(line, self_point, self_direction)
+            
+            if time_to_hit < delta_time and time_to_hit > 0:
+                # print("p1: {}; p2: {}".format(previous_line_point, new_point))
+                where_hit = p_hit(self_point, time_to_hit, self_direction)
+                # print(where_hit)
+                if new_point.x <= where_hit.x <= previous_line_point.x or  previous_line_point.x <= where_hit.x <= new_point.x:
+                    new_direction = reflect(self_direction, line)
+                    self.direction = (new_direction.x, new_direction.y)
+                    return
+
+            previous_line_point = new_point
 
 class Wall(GameObject):
     """Some basic walls and stuff."""
