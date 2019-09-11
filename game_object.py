@@ -112,7 +112,6 @@ class Enemy(GameObject):
         # print(self.hp, self.shields)
 
 
-
 class Bullet(GameObject):
     """Basic bullet object."""
 

@@ -19,7 +19,7 @@ BULLET_DOWN = (0, -BULLET_SPEED)
 OBSTACLE_WALL = "w"
 OBSTACLE_ENEMY = "e"
 
-ENEMY_VERTICES = ((-7, -7), (7, -7), (-7, 7), (7, 7))
+ENEMY_VERTICES = ((-15, -15), (15, -15), (-15, 15), (15, 15))
 PLAYER_VERTICES = ((-12, 0), (12, 0), (0, 25))
 
 COLOR_PLAYER = (0.9, 0.9, 0.9)

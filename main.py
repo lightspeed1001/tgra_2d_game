@@ -12,9 +12,11 @@ import sys
 class ShooterGame:
     def __init__(self):
         """Initializes game data."""
+        # Player starts at the center
         player = Player(WINDOW_WIDTH // 2, 25, PLAYER_VERTICES, COLOR_PLAYER, 1, 1, 1)
         self.object_container = GameObjectContainer(player)
         self.clock = pygame.time.Clock()
+        # TODO Make level into an array of levels, and once the player finishes a level, move to the next one
         self.level = load_level("level1")  # Maye sometime later, add more levels
         self.timer = 0
         pygame.display.init()
@@ -36,11 +38,12 @@ class ShooterGame:
 
     def game_loop(self):
         """The main game loop. Takes care of updating, drawing, etc."""
-        delta_time = self.clock.tick() / 1000
+        delta_time = self.clock.tick() / 1000  # tick is in ms, I want it in seconds
         for event in pygame.event.get():
             if event.type == QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
+            # It's here so that it only fire once per frame.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 self.object_container.bullets.append(self.object_container.player.shoot())
 
@@ -80,14 +83,15 @@ class ShooterGame:
 
     def update(self, delta_time):
         """Updates all the objects."""
+        # Bullet collisions
         for bullet in self.object_container.bullets:
             for wall in self.object_container.walls:
                 bullet.collision_check(wall, delta_time)
-            # TODO Check for player and enemies. Distinguish between friendly and enemy bullets?
             bullet.collision_check(self.object_container.player, delta_time)
             for enemy in self.object_container.enemies:
                 bullet.collision_check(enemy, delta_time)
 
+        # Update loop and cleanup
         for obj in self.object_container.get_all_objects():
             obj.update(delta_time)
             if not obj.alive:

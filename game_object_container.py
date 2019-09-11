@@ -2,6 +2,7 @@ from game_object import *
 
 
 class GameObjectContainer:
+    """Responsible for keeping track of all the game objects."""
     def __init__(self, player, enemies=None, bullets=None, walls=None):
         if walls is None:
             walls = []
