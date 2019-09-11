@@ -1,9 +1,9 @@
 import pygame
 from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
+# from OpenGL.GL import *
+# from OpenGL.GLU import *
 from game_object_container import *
-from constants import *
+# import constants
 from game_object import *
 from level_loader import load_level
 import sys
@@ -28,7 +28,7 @@ class ShooterGame:
                 self.object_container.walls.append(new_wall)
             elif obstacle["type"] == OBSTACLE_ENEMY:
                 x, y = obstacle["data"]
-                new_enemy = Enemy(x, y, ENEMY_VERTICES, COLOR_ENEMY, 10, 10)
+                new_enemy = Enemy(x, y, ENEMY_VERTICES, COLOR_ENEMY, 2, 2)
                 self.object_container.enemies.append(new_enemy)
                 # self.object_container.enemies.append(obstacle["data"])
 
@@ -44,14 +44,14 @@ class ShooterGame:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 self.object_container.bullets.append(self.object_container.player.shoot())
 
-
         pressed_keys = pygame.key.get_pressed()
         self.handle_input(pressed_keys, delta_time)
-        
+
         self.update(delta_time)
         self.draw()
 
     def handle_input(self, pressed_keys, delta_time):
+        """Handles any input required for moving the player."""
         if pressed_keys[pygame.K_LEFT]:
             self.object_container.player.move(PLAYER_LEFT, delta_time)
         if pressed_keys[pygame.K_RIGHT]:
@@ -80,15 +80,19 @@ class ShooterGame:
 
     def update(self, delta_time):
         """Updates all the objects."""
+        for bullet in self.object_container.bullets:
+            for wall in self.object_container.walls:
+                bullet.collision_check(wall, delta_time)
+            # TODO Check for player and enemies. Distinguish between friendly and enemy bullets?
+            bullet.collision_check(self.object_container.player, delta_time)
+            for enemy in self.object_container.enemies:
+                bullet.collision_check(enemy, delta_time)
+
         for obj in self.object_container.get_all_objects():
             obj.update(delta_time)
             if not obj.alive:
                 self.object_container.delete_object(obj)
-        
-        for bullet in self.object_container.bullets:
-            for wall in self.object_container.walls:
-                bullet.collision_check(wall, delta_time)
-        
+
     def run(self):
         """Runs the game forever-ish."""
         while True:

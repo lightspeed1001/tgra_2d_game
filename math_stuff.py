@@ -46,7 +46,8 @@ def t_hit(line, particle, direction):
     above = n ** p1particle
     below = n ** direction
     if below == 0: return -1
-    # print("p1: {}; p2: {}; particle: {}; direction: {}; normal: {}; above: {}; below: {}".format(p1, p2, particle, direction, n, above, below))
+    # print("p1: {}; p2: {}; particle: {}; direction: {}; normal: {}; above: {}; below: {}".format(p1, p2, particle,
+    # direction, n, above, below))
 
     return above/below
 
@@ -72,6 +73,8 @@ def reflect(direction, line):
     cn = Point(cn * n.x, cn * n.y)
 
     return direction - cn
+
+
 # t = t_hit((Point(3,8), Point(7,6)), Point(4,2), Vector(1, 3))
 # p = p_hit(Point(4,2), t, Vector(1, 3))
 # print(t, p)
