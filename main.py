@@ -7,6 +7,8 @@ from game_object_container import *
 from game_object import *
 from level_loader import load_level
 import sys
+from random import random
+from math import sqrt
 
 
 class ShooterGame:
@@ -41,17 +43,26 @@ class ShooterGame:
         delta_time = self.clock.tick() / 1000  # tick is in ms, I want it in seconds
         for event in pygame.event.get():
             if event.type == QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                pygame.quit()
-                sys.exit()
-            # It's here so that it only fire once per frame.
+                self.exit_game()
+            # Shooting logic is here, just because I want the player to only fire once per frame and making some
+            # extra logic to facilitate that sounds like hassle.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.object_container.bullets.append(self.object_container.player.shoot())
+                # TODO Make powerups? Shoot directional bullets as well?
+                bank_left = rotate_vector(BULLET_UP, 20)
+                bank_right = rotate_vector(BULLET_UP, -20)
+                self.object_container.bullets.append(self.object_container.player.shoot(BULLET_UP))
+                self.object_container.bullets.append(self.object_container.player.shoot(bank_left))
+                self.object_container.bullets.append(self.object_container.player.shoot(bank_right))
 
         pressed_keys = pygame.key.get_pressed()
         self.handle_input(pressed_keys, delta_time)
 
         self.update(delta_time)
         self.draw()
+
+    def exit_game(self):
+        pygame.quit()
+        sys.exit()
 
     def handle_input(self, pressed_keys, delta_time):
         """Handles any input required for moving the player."""
@@ -63,6 +74,11 @@ class ShooterGame:
             self.object_container.player.move(PLAYER_UP, delta_time)
         if pressed_keys[pygame.K_DOWN]:
             self.object_container.player.move(PLAYER_DOWN, delta_time)
+        self.restrain_player()
+
+    def restrain_player(self):
+        self.object_container.player.x = min(WINDOW_WIDTH, max(0, self.object_container.player.x))
+        self.object_container.player.y = min(WINDOW_HEIGHT, max(0, self.object_container.player.y))
 
     def draw(self):
         """Draws all the objects on screen."""
@@ -83,13 +99,36 @@ class ShooterGame:
 
     def update(self, delta_time):
         """Updates all the objects."""
+        if self.object_container.player.hp <= 0:
+            pass
+            # self.exit_game()
+            # return
         # Bullet collisions
-        for bullet in self.object_container.bullets:
+        for bullet in self. object_container.bullets:
             for wall in self.object_container.walls:
                 bullet.collision_check(wall, delta_time)
             bullet.collision_check(self.object_container.player, delta_time)
             for enemy in self.object_container.enemies:
                 bullet.collision_check(enemy, delta_time)
+
+        # Is an enemy supposed to fire?
+        for enemy in self.object_container.enemies:
+            if WINDOW_HEIGHT < enemy.y or enemy.y < 0:
+                continue
+            # No real logic here, just randomly shoot.
+            if random() > 0.94:
+                p_x, p_y = self.object_container.player.x, self.object_container.player.y
+                direction_x = p_x - enemy.x
+                direction_y = p_y - enemy.y
+                direction_len = sqrt(direction_x ** 2 + direction_y ** 2)
+
+                # TODO Player can't go inside enemies or walls
+                if direction_len == 0:
+                    continue
+                direction = ((direction_x / direction_len) * BULLET_SPEED, (direction_y / direction_len) * BULLET_SPEED)
+
+                # print("firing at {}".format(direction))
+                self.object_container.bullets.append(enemy.shoot(direction))
 
         # Update loop and cleanup
         for obj in self.object_container.get_all_objects():

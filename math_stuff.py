@@ -1,3 +1,4 @@
+from math import pi, sin, cos
 # TODO use these two classes everywhere, instead of just tuples
 class Point:
     def __init__(self, x, y):
@@ -33,6 +34,15 @@ class Vector:
 
     def __str__(self):
         return "({}, {})".format(self.x, self.y)
+
+
+def rotate_vector(vector, degrees):
+    deg_to_rad = pi/180
+    rads = degrees * deg_to_rad
+    cosine = cos(rads)
+    sinus = sin(rads)
+    # Vector(ca*v.X - sa*v.Y, sa*v.X + ca*v.Y)
+    return cosine * vector[0] - sinus * vector[1], sinus * vector[0] + cosine * vector[1]
 
 
 def t_hit(line, particle, direction):

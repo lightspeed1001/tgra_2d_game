@@ -26,3 +26,5 @@ class GameObjectContainer:
             self.walls.remove(obj)
         elif isinstance(obj, Enemy):
             self.enemies.remove(obj)
+        elif isinstance(obj, Player):
+            print("You died :(")
