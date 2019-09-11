@@ -46,7 +46,7 @@ class ShooterGame:
                 self.exit_game()
             # Shooting logic is here, just because I want the player to only fire once per frame and making some
             # extra logic to facilitate that sounds like hassle.
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and self.object_container.player.alive:
                 # TODO Make powerups? Shoot directional bullets as well?
                 bank_left = rotate_vector(BULLET_UP, 20)
                 bank_right = rotate_vector(BULLET_UP, -20)
@@ -65,16 +65,17 @@ class ShooterGame:
         sys.exit()
 
     def handle_input(self, pressed_keys, delta_time):
-        """Handles any input required for moving the player."""
-        if pressed_keys[pygame.K_LEFT]:
-            self.object_container.player.move(PLAYER_LEFT, delta_time)
-        if pressed_keys[pygame.K_RIGHT]:
-            self.object_container.player.move(PLAYER_RIGHT, delta_time)
-        if pressed_keys[pygame.K_UP]:
-            self.object_container.player.move(PLAYER_UP, delta_time)
-        if pressed_keys[pygame.K_DOWN]:
-            self.object_container.player.move(PLAYER_DOWN, delta_time)
-        self.restrain_player()
+        if self.object_container.player.alive:
+            """Handles any input required for moving the player."""
+            if pressed_keys[pygame.K_LEFT]:
+                self.object_container.player.move(PLAYER_LEFT, delta_time)
+            if pressed_keys[pygame.K_RIGHT]:
+                self.object_container.player.move(PLAYER_RIGHT, delta_time)
+            if pressed_keys[pygame.K_UP]:
+                self.object_container.player.move(PLAYER_UP, delta_time)
+            if pressed_keys[pygame.K_DOWN]:
+                self.object_container.player.move(PLAYER_DOWN, delta_time)
+            self.restrain_player()
 
     def restrain_player(self):
         self.object_container.player.x = min(WINDOW_WIDTH, max(0, self.object_container.player.x))
@@ -100,9 +101,8 @@ class ShooterGame:
     def update(self, delta_time):
         """Updates all the objects."""
         if self.object_container.player.hp <= 0:
-            pass
             # self.exit_game()
-            # return
+            return
         # Bullet collisions
         for bullet in self. object_container.bullets:
             for wall in self.object_container.walls:
