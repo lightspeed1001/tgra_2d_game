@@ -16,6 +16,7 @@ class ShooterGame:
         """Initializes game data."""
         # Player starts at the center
         player = Player(WINDOW_WIDTH // 2, 25, PLAYER_VERTICES, COLOR_PLAYER, 1, 1, 1)
+        self.do_the_thing = True
         self.object_container = GameObjectContainer(player)
         self.clock = pygame.time.Clock()
         # TODO Make level into an array of levels, and once the player finishes a level, move to the next one
@@ -28,7 +29,7 @@ class ShooterGame:
 
         for obstacle in self.level:
             if obstacle["type"] == OBSTACLE_WALL:
-                new_wall = Wall(400, 0, obstacle["data"], COLOR_WALL)
+                new_wall = Wall(WINDOW_WIDTH // 2, 0, obstacle["data"], COLOR_WALL)
                 self.object_container.walls.append(new_wall)
             elif obstacle["type"] == OBSTACLE_ENEMY:
                 x, y = obstacle["data"]
@@ -61,8 +62,7 @@ class ShooterGame:
         self.draw()
 
     def exit_game(self):
-        pygame.quit()
-        sys.exit()
+        self.do_the_thing = False
 
     def handle_input(self, pressed_keys, delta_time):
         if self.object_container.player.alive:
@@ -81,6 +81,17 @@ class ShooterGame:
         self.object_container.player.x = min(WINDOW_WIDTH, max(0, self.object_container.player.x))
         self.object_container.player.y = min(WINDOW_HEIGHT, max(0, self.object_container.player.y))
 
+    def is_object_offscreen(self, obj):
+        # TODO check the vertices as well! If one vertex is onscreen, the whole object is there.
+        # Only really applicable to walls
+
+        # How far is off-screen?
+        if obj.x <= -OFFSCREEN_WIGGLE or obj.x >= WINDOW_WIDTH + OFFSCREEN_WIGGLE:
+            return True
+        elif obj.y <= -OFFSCREEN_WIGGLE or obj.y >= WINDOW_HEIGHT + OFFSCREEN_WIGGLE:
+            return True
+        return False
+
     def draw(self):
         """Draws all the objects on screen."""
         # Teacher boilerplate
@@ -94,7 +105,8 @@ class ShooterGame:
         glClear(GL_COLOR_BUFFER_BIT)
 
         for obj in self.object_container.get_all_objects():
-            obj.draw()
+            if not self.is_object_offscreen(obj) or isinstance(obj, Wall):
+                obj.draw()
 
         pygame.display.flip()
 
@@ -104,7 +116,10 @@ class ShooterGame:
             # self.exit_game()
             return
         # Bullet collisions
-        for bullet in self. object_container.bullets:
+        for bullet in self.object_container.bullets:
+            if self.is_object_offscreen(bullet):
+                bullet.destroy()
+                continue
             for wall in self.object_container.walls:
                 bullet.collision_check(wall, delta_time)
             bullet.collision_check(self.object_container.player, delta_time)
@@ -116,13 +131,13 @@ class ShooterGame:
             if WINDOW_HEIGHT < enemy.y or enemy.y < 0:
                 continue
             # No real logic here, just randomly shoot.
-            if random() > 0.94:
+            if random() > ENEMY_CHANCE_TO_FIRE:
                 p_x, p_y = self.object_container.player.x, self.object_container.player.y
                 direction_x = p_x - enemy.x
                 direction_y = p_y - enemy.y
                 direction_len = sqrt(direction_x ** 2 + direction_y ** 2)
 
-                # TODO Player can't go inside enemies or walls
+                # Don't want to divide by zero now do we?
                 if direction_len == 0:
                     continue
                 direction = ((direction_x / direction_len) * BULLET_SPEED, (direction_y / direction_len) * BULLET_SPEED)
@@ -138,8 +153,9 @@ class ShooterGame:
 
     def run(self):
         """Runs the game forever-ish."""
-        while True:
+        while self.do_the_thing:
             self.game_loop()
+        pygame.quit()
 
 
 if __name__ == "__main__":

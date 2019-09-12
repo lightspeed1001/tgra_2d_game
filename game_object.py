@@ -28,6 +28,9 @@ class GameObject(object):
 
     def collision_check(self, other, delta_time):
         """Checks if the object collides with other."""
+        # TODO Collision checks for things that aren't bullets
+        # Could just treat the vertices as points and check those against other lines?
+        # Don't have time. RIP
         pass
 
     def draw(self):
@@ -151,10 +154,9 @@ class Bullet(GameObject):
             time_to_hit = t_hit(line, self_point, self_direction)
 
             if delta_time >= time_to_hit >= 0:
-                # print("p1: {}; p2: {}".format(previous_line_point, new_point))
                 where_hit = p_hit(self_point, time_to_hit, self_direction)
-                # print(where_hit)
                 # TODO Fix vertical lines being infinitely long
+                # TODO Fix the collision detection sometimes letting things through
                 if new_point.x <= where_hit.x <= previous_line_point.x or \
                         previous_line_point.x <= where_hit.x <= new_point.x:
                     if isinstance(other, Wall):
@@ -175,10 +177,12 @@ class Bullet(GameObject):
 
 
 class PlayerBullet(Bullet):
+    # Dummy class for now.
     pass
 
 
 class EnemyBullet(Bullet):
+    # Dummy class for now.
     pass
 
 
@@ -190,5 +194,5 @@ class Wall(GameObject):
         draw_poly(self.x, self.y, self.vertices, self.color, GL_LINE_LOOP)
 
     def update(self, delta_time):
-        """Does any update logic. This basic function does nothing. Please override. """
+        """Scrolls the obstacle down slowly."""
         self.y -= delta_time * SCROLL_SPEED

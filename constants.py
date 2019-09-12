@@ -1,5 +1,9 @@
+# Please don't mess with the window values, though in theory everything should be fine
 WINDOW_HEIGHT = 600
 WINDOW_WIDTH = 800
+
+# The rest you can mess with
+OFFSCREEN_WIGGLE = 50
 
 PLAYER_SPEED = 250
 ENEMY_SPEED = 90
@@ -28,3 +32,5 @@ COLOR_PLAYER = (0.9, 0.9, 0.9)
 COLOR_WALL = (1.0, 0.0, 0.0)
 COLOR_ENEMY = (0.9, 0.0, 0.9)
 COLOR_BULLET = (0.0, 0.0, 1.0)
+
+ENEMY_CHANCE_TO_FIRE = 0.95
