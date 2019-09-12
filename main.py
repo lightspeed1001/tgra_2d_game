@@ -15,7 +15,7 @@ class ShooterGame:
     def __init__(self):
         """Initializes game data."""
         # Player starts at the center
-        player = Player(WINDOW_WIDTH // 2, 25, PLAYER_VERTICES, COLOR_PLAYER, 1, 1, 1)
+        player = Player(WINDOW_WIDTH // 2, 25, PLAYER_VERTICES, COLOR_PLAYER, PLAYER_START_HP, PLAYER_START_SHIELDS, 1)
         self.do_the_thing = True
         self.object_container = GameObjectContainer(player)
         self.clock = pygame.time.Clock()
@@ -47,7 +47,7 @@ class ShooterGame:
                 self.exit_game()
             # Shooting logic is here, just because I want the player to only fire once per frame and making some
             # extra logic to facilitate that sounds like hassle.
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and self.object_container.player.alive:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_z and self.object_container.player.alive:
                 # TODO Make powerups? Shoot directional bullets as well?
                 bank_left = rotate_vector(BULLET_UP, 20)
                 bank_right = rotate_vector(BULLET_UP, -20)
@@ -81,14 +81,23 @@ class ShooterGame:
         self.object_container.player.x = min(WINDOW_WIDTH, max(0, self.object_container.player.x))
         self.object_container.player.y = min(WINDOW_HEIGHT, max(0, self.object_container.player.y))
 
-    def is_object_offscreen(self, obj):
+    def is_object_offscreen_with_wiggle(self, obj):
         # TODO check the vertices as well! If one vertex is onscreen, the whole object is there.
         # Only really applicable to walls
 
         # How far is off-screen?
         if obj.x <= -OFFSCREEN_WIGGLE or obj.x >= WINDOW_WIDTH + OFFSCREEN_WIGGLE:
+            # Shitty hack to always show long walls
             return True
         elif obj.y <= -OFFSCREEN_WIGGLE or obj.y >= WINDOW_HEIGHT + OFFSCREEN_WIGGLE:
+            return True
+        return False
+
+    def is_object_offscreen_absolute(self, obj):
+        if obj.x <= 0 or obj.x >= WINDOW_WIDTH:
+            # Shitty hack to always show long walls
+            return True
+        elif obj.y <= 0 or obj.y >= WINDOW_HEIGHT:
             return True
         return False
 
@@ -105,7 +114,7 @@ class ShooterGame:
         glClear(GL_COLOR_BUFFER_BIT)
 
         for obj in self.object_container.get_all_objects():
-            if not self.is_object_offscreen(obj) or isinstance(obj, Wall):
+            if not self.is_object_offscreen_with_wiggle(obj) or isinstance(obj, Wall):
                 obj.draw()
 
         pygame.display.flip()
@@ -117,7 +126,7 @@ class ShooterGame:
             return
         # Bullet collisions
         for bullet in self.object_container.bullets:
-            if self.is_object_offscreen(bullet):
+            if self.is_object_offscreen_with_wiggle(bullet):
                 bullet.destroy()
                 continue
             for wall in self.object_container.walls:
@@ -128,10 +137,11 @@ class ShooterGame:
 
         # Is an enemy supposed to fire?
         for enemy in self.object_container.enemies:
-            if WINDOW_HEIGHT < enemy.y or enemy.y < 0:
+            # Offscreen enemies should not fire
+            if self.is_object_offscreen_absolute(enemy):
                 continue
             # No real logic here, just randomly shoot.
-            if random() > ENEMY_CHANCE_TO_FIRE:
+            if random() > 1.0 - ENEMY_CHANCE_TO_FIRE:
                 p_x, p_y = self.object_container.player.x, self.object_container.player.y
                 direction_x = p_x - enemy.x
                 direction_y = p_y - enemy.y
@@ -144,12 +154,13 @@ class ShooterGame:
 
                 # print("firing at {}".format(direction))
                 self.object_container.bullets.append(enemy.shoot(direction))
-
+        
         # Update loop and cleanup
         for obj in self.object_container.get_all_objects():
             obj.update(delta_time)
             if not obj.alive:
                 self.object_container.delete_object(obj)
+
 
     def run(self):
         """Runs the game forever-ish."""
@@ -159,5 +170,8 @@ class ShooterGame:
 
 
 if __name__ == "__main__":
+    print("z to fire, arrow keys to move")
+    # print("Press enter to start...")
+    # input("")
     game = ShooterGame()
     game.run()

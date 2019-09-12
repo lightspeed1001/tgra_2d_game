@@ -10,12 +10,14 @@ from ast import literal_eval
 #       Feel free to add more if you want. There are only a few as a proof of concept.
 #   e:(x, y)
 #       Places an enemy at (x, y) coordinates. No funky offset this time.
+# Empty lines and lines starting with # are ignored
+# Feel free to add as many obstacles and enemies as you want, they should all work just fine.
 def load_level(level_file):
     # TODO make this into a class, instead of just a dict
     obstacles = []
     with open(level_file, 'r') as file:
         for row in file:
-            if row == "\n":
+            if row == "\n" or row[0] == "#":
                 continue
             data = row.split(':')
             ob_type = data[0]

@@ -8,13 +8,17 @@ class GameObject(object):
 
     def __init__(self, x, y, vertices, color):
         """Initialize the object"""
+        # TODO Change self.x/y into Point, maybe vertices as well?
+        # TODO Change self.direction into Vector.
         self.x = x
         self.y = y
         self.vertices = vertices
         self.color = color
         self.alive = True
+        self.invulnerable = 0
 
     def __iter__(self):
+        # To be able to iterate over lists of these easily
         yield self
 
     def move(self, direction, delta_time):
@@ -55,6 +59,16 @@ class Player(GameObject):
         """Draw self."""
         draw_poly(self.x, self.y, self.vertices, self.color, GL_TRIANGLE_STRIP)
 
+    def update(self, delta_time):
+        if self.invulnerable > 0:
+            self.invulnerable -= delta_time
+            if self.color == COLOR_PLAYER:
+                self.color = PLAYER_INVULN_COLOR
+            else:
+                self.color = COLOR_PLAYER
+            if self.invulnerable <= 0:
+                self.color = COLOR_PLAYER
+
     def shoot(self, direction):
         """Shoots a projectile straight."""
         new_bullet = PlayerBullet(self.x, self.y + 26, (0, 0), COLOR_BULLET, direction)
@@ -62,10 +76,14 @@ class Player(GameObject):
 
     def take_damage(self, hp_dmg, sh_dmg):
         """Take some damage."""
+        if self.invulnerable > 0:
+            return
+        
         if self.shields <= 0:
             self.hp = max(0, self.hp - hp_dmg)
         else:
             self.shields = max(0, self.shields - sh_dmg)
+        self.invulnerable = PLAYER_INVULN_TIME
         if self.hp <= 0:
             self.die()
 
@@ -85,7 +103,7 @@ class Enemy(GameObject):
 
     def shoot(self, direction):
         """Shoots in a direction."""
-        new_bullet = EnemyBullet(self.x, self.y - 16, (0, 0), COLOR_BULLET, direction)
+        new_bullet = EnemyBullet(self.x, self.y - 16, (0, 0), COLOR_ENEMY_BULLET, direction)
         return new_bullet
 
     def update(self, delta_time):
@@ -104,15 +122,16 @@ class Enemy(GameObject):
 
     def take_damage(self, hp_dmg, sh_dmg):
         """Take some damage."""
-        # print("Enemy taking damage")
         if self.shields <= 0:
             self.hp = max(0, self.hp - hp_dmg)
         else:
             self.shields = max(0, self.shields - sh_dmg)
+
+        if self.shields <= 0:
+            self.color = (0.8, 0.3, 0.3)
         if self.hp <= 0:
-            # print("Enemy should die")
             self.die()
-        # print(self.hp, self.shields)
+        
 
 
 class Bullet(GameObject):
@@ -147,18 +166,27 @@ class Bullet(GameObject):
         previous_line_point = other.vertices[0]
         previous_line_point = Point(other.x - previous_line_point[0], other.y + previous_line_point[1])
 
-        for line_point in other.vertices[1:]:
+        for line_point in other.vertices[1:] + other.vertices[0:1]:
             new_point = Point(other.x - line_point[0], other.y + line_point[1])
 
             line = (previous_line_point, new_point)
             time_to_hit = t_hit(line, self_point, self_direction)
-
-            if delta_time >= time_to_hit >= 0:
+            if delta_time + DELTA_WIGGLE >= time_to_hit >= 0:
                 where_hit = p_hit(self_point, time_to_hit, self_direction)
-                # TODO Fix vertical lines being infinitely long
                 # TODO Fix the collision detection sometimes letting things through
-                if new_point.x <= where_hit.x <= previous_line_point.x or \
+                x_dist = abs(new_point.x - previous_line_point.x)
+                y_dist = abs(new_point.y - previous_line_point.y)
+                collides = False
+                if x_dist > y_dist:
+                    if new_point.x <= where_hit.x <= previous_line_point.x or \
                         previous_line_point.x <= where_hit.x <= new_point.x:
+                        collides = True
+                else:
+                    if new_point.y <= where_hit.y <= previous_line_point.y or \
+                        previous_line_point.y <= where_hit.y <= new_point.y:
+                        collides = True
+                
+                if collides:
                     if isinstance(other, Wall):
                         new_direction = reflect(self_direction, line)
                         self.direction = (new_direction.x, new_direction.y)
@@ -172,7 +200,6 @@ class Bullet(GameObject):
                                 or isinstance(self, EnemyBullet) and not isinstance(other, Enemy):
                             other.take_damage(self.hp_damage, self.shield_damage)
                             self.destroy()
-
             previous_line_point = new_point
 
 
